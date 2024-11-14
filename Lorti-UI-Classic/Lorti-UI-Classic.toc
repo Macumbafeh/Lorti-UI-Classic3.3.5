@@ -1,0 +1,16 @@
+## Interface: 30401
+## Author: Lorti, Chordsy, Macumba, Knall, Jozh, Xyz, Arrone
+## Version: v36
+## Title: Lorti-UI-Classic 3.3.5
+## Notes: Darkens the default UI. Updated for WOTLK by Macumba and his friends.
+## OptionalDeps: Leatrix_Plus
+## SavedVariablesPerCharacter: Lorti
+
+config.lua
+core\settings.lua
+core\frames.lua
+core\buffs.lua
+core\actionbars.lua
+core\auras.lua
+core\minimap.lua
+core\custom.lua
