@@ -628,7 +628,7 @@ local CLASS_TEXTURE = "Interface\\AddOns\\Lorti-UI-Classic\\textures\\classes\\%
 
 --Class Portraits
 local function ApplyClassPortraits(self)
-    if self.unit == "player" or self.unit == "pet" then
+    if self.unit == "pet" then
         return
     end
 
