@@ -149,6 +149,12 @@ local function ApplyThickness()
         PlayerFrameGroupIndicatorRight:Hide();
         PlayerFrameGroupIndicatorText:Hide();
         PlayerFrameGroupIndicator:Hide();
+		FocusFrame:SetScale(1)
+		FocusFrameTextureFrameName:SetFont("Fonts\\FRIZQT__.TTF", 10, "");
+		FocusFrameTextureFrameName:SetPoint("CENTER",-50,38);
+		FocusFrameTextureFrameHealthBarText:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE");
+		FocusFrameTextureFrameHealthBarText:SetPoint("CENTER", -50, 13);
+		FocusFrameTextureFrameManaBarText:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE");
     end
     hooksecurefunc("PlayerFrame_ToPlayerArt", LortiUIPlayerFrame)
     hooksecurefunc("PlayerFrame_ToVehicleArt", LortiUIPlayerFrame)
@@ -160,6 +166,60 @@ local function ApplyThickness()
     FocusFrameToTTextureFrameTexture:SetTexture("Interface\\Addons\\Lorti-UI-Classic\\textures\\unitframes\\UI-TargetofTargetFrame");
     FocusFrameToTHealthBar:SetHeight(8)
 end
+
+local function ApplyThicknessToFocusFrame(self)
+    if not self or not UnitExists("focus") then return end
+
+    local classification = UnitClassification("focus")
+    if (classification == "worldboss" or classification == "elite") then
+        FocusFrame.borderTexture:SetTexture("Interface\\Addons\\Lorti-UI-Classic\\textures\\target\\Thick-Elite")
+        FocusFrame.borderTexture:SetVertexColor(1, 1, 1)
+    elseif (classification == "rareelite") then
+        FocusFrame.borderTexture:SetTexture("Interface\\Addons\\Lorti-UI-Classic\\textures\\target\\Thick-Rare-Elite")
+        FocusFrame.borderTexture:SetVertexColor(1, 1, 1)
+    elseif (classification == "rare") then
+        FocusFrame.borderTexture:SetTexture("Interface\\Addons\\Lorti-UI-Classic\\textures\\target\\Thick-Rare")
+        FocusFrame.borderTexture:SetVertexColor(1, 1, 1)
+    else
+        FocusFrame.borderTexture:SetTexture("Interface\\Addons\\Lorti-UI-Classic\\textures\\unitframes\\UI-TargetingFrame")
+        FocusFrame.borderTexture:SetVertexColor(0.05, 0.05, 0.05)
+    end
+
+    -- Adjust the health and mana bars, name, and other elements
+    FocusFrame.highLevelTexture:SetPoint("CENTER", FocusFrame.levelText, "CENTER", 0, 0)
+    FocusFrame.nameBackground:Hide()
+    FocusFrame.name:SetPoint("LEFT", FocusFrame, 15, 36)
+    FocusFrame.healthbar:SetSize(119, 27)
+    FocusFrame.healthbar:SetPoint("TOPLEFT", 5, -24)
+    FocusFrame.manabar:SetPoint("TOPLEFT", 7, -52)
+    FocusFrame.manabar:SetSize(119, 13)
+
+    if FocusFrame.Background then
+        FocusFrame.Background:SetSize(119, 42)
+        FocusFrame.Background:SetPoint("BOTTOMLEFT", FocusFrame, "BOTTOMLEFT", 7, 35)
+    end
+end
+
+local function OnEvent(self, event, arg1)
+    if event == "PLAYER_FOCUS_CHANGED" then
+        ApplyThicknessToFocusFrame(FocusFrame)
+    elseif event == "UNIT_CLASSIFICATION_CHANGED" and arg1 == "focus" then
+        ApplyThicknessToFocusFrame(FocusFrame)
+    end
+end
+
+local function InitializeFocusFrameCustomization()
+    -- Create a frame to listen for events
+    local focusFrameEventHandler = CreateFrame("Frame")
+    focusFrameEventHandler:RegisterEvent("PLAYER_FOCUS_CHANGED")
+    focusFrameEventHandler:RegisterEvent("UNIT_CLASSIFICATION_CHANGED")
+
+    -- Set the event handler function
+    focusFrameEventHandler:SetScript("OnEvent", OnEvent)
+end
+
+-- Call this function during the PLAYER_LOGIN or ADDON_LOADED event
+InitializeFocusFrameCustomization()
 
 local function Classify(self, forceNormalTexture)
     local classification = UnitClassification(self.unit);
