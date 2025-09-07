@@ -135,6 +135,14 @@ local function applySkin(b)
     b.styled = true
 end
 
+-- Style TemporaryEnchantFrame
+local tempFrame = TemporaryEnchantFrame
+if tempFrame and not tempFrame.styled then
+    tempFrame:SetScale(ns.cfg.frameScale)
+    tempFrame:SetAlpha(1)
+    tempFrame:Show()
+end
+
 ---------------------------------------
 -- INIT
 ---------------------------------------
@@ -165,14 +173,22 @@ hooksecurefunc("BuffFrame_UpdateAllBuffAnchors", function()
     local slack = BuffFrame.numEnchants;
     local buttonName = "BuffButton"
     if (BuffFrame.numConsolidated > 0) then
-        slack = slack + 1;    -- one icon for all consolidated buffs
+        slack = slack + 1; -- one icon for all consolidated buffs
     end
 
+    -- Clear existing positions before re-layout
+    for i = 1, BUFF_ACTUAL_DISPLAY do
+        local b = _G["BuffButton" .. i]
+        if b then
+            b:ClearAllPoints()
+        end
+    end
+
+    -- Process each buff button
     for i = 1, BUFF_ACTUAL_DISPLAY do
         button = _G["BuffButton" .. i];
-        if not button then
-            return
-        end
+        if not button then return end
+
         if (button.consolidated) then
             if (button.parent == BuffFrame) then
                 button:SetParent(ConsolidatedBuffsContainer);
@@ -181,12 +197,14 @@ hooksecurefunc("BuffFrame_UpdateAllBuffAnchors", function()
         else
             numBuffs = numBuffs + 1;
             index = numBuffs + slack;
+
             if (button.parent ~= BuffFrame) then
                 button.count:SetFontObject(NumberFontNormal);
                 button:SetParent(BuffFrame);
                 button.parent = BuffFrame;
             end
-            button:ClearAllPoints();
+
+            -- Positioning logic
             if ((index > 1) and (math.fmod(index, cfg.buffFrame.buttonsPerRow) == 1)) then
                 -- New row
                 numAuraRows = numAuraRows + 1;
@@ -202,17 +220,37 @@ hooksecurefunc("BuffFrame_UpdateAllBuffAnchors", function()
                 aboveBuff = button;
             else
                 if (numBuffs == 1) then
-                    if (BuffFrame.numEnchants > 0) then
-                        button:SetPoint("TOPRIGHT", "TemporaryEnchantFrame", "TOPLEFT", -cfg.buffFrame.colSpacing, 0);
-                        aboveBuff = TemporaryEnchantFrame;
-                    else
-                        button:SetPoint("TOPRIGHT", ConsolidatedBuffs, "TOPLEFT", -cfg.buffFrame.colSpacing, 0);
-                    end
+                    -- First buff: position next to TempEnchant1
+                    local rightmost = nil
+					if BuffFrame.numEnchants >= 2 then
+						rightmost = TempEnchant2
+					elseif BuffFrame.numEnchants == 1 then
+						rightmost = TempEnchant1
+					else
+						rightmost = ConsolidatedBuffs
+					end
+
+					if rightmost then
+						button:SetPoint("TOPRIGHT", rightmost, "TOPLEFT", -cfg.buffFrame.colSpacing, 0)
+					else
+						button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, 0)
+					end
                 else
                     button:SetPoint("RIGHT", previousBuff, "LEFT", -cfg.buffFrame.colSpacing, 0);
                 end
             end
             previousBuff = button;
+        end
+    end
+
+    -- Now position the TempEnchant buttons *correctly*, after buffs are laid out
+    if (BuffFrame.numEnchants > 0) then
+        TempEnchant1:ClearAllPoints()
+        TempEnchant1:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", cfg.buffFrame.colSpacing, 0)
+
+        if (BuffFrame.numEnchants > 1) then
+            TempEnchant2:ClearAllPoints()
+            TempEnchant2:SetPoint("TOPRIGHT", TempEnchant1, "TOPLEFT", -cfg.buffFrame.colSpacing, 0)
         end
     end
 end)
